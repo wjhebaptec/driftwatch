@@ -11,6 +11,7 @@ import (
 // BuildReport creates a Report from a slice of DiffResults.
 // It sets the timestamp to now and determines the Drifted flag
 // based on whether any non-unchanged results are present.
+// Only drifted results (added, changed, removed) are stored in the report.
 func BuildReport(results []snapshot.DiffResult) Report {
 	drifted := false
 	var driftResults []snapshot.DiffResult
@@ -44,6 +45,21 @@ func Summary(r Report) string {
 		}
 	}
 	return formatSummary(changed, added, removed)
+}
+
+// Counts returns the number of changed, added, and removed resources in the report.
+func Counts(r Report) (changed, added, removed int) {
+	for _, res := range r.Results {
+		switch res.Status {
+		case snapshot.StatusChanged:
+			changed++
+		case snapshot.StatusAdded:
+			added++
+		case snapshot.StatusRemoved:
+			removed++
+		}
+	}
+	return changed, added, removed
 }
 
 func formatSummary(changed, added, removed int) string {
